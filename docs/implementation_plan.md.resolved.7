@@ -1,0 +1,68 @@
+# Implementation Plan - Digital Plaid
+
+Digital Plaid is a high-end, tactical Disney companion PWA designed for parents. It features a 2026-ready rule engine, offline-first resilience, and a sophisticated "Executive Plaid" design.
+
+## Proposed Changes
+
+### [Component] Project Setup
+
+- [NEW] Initialize Expo (React Native) with TypeScript.
+- [NEW] Integrate NativeWind for styling.
+- [NEW] Setup Supabase for backend services (Auth, Database, Edge Functions).
+
+### [Component] Data Layer
+
+- [NEW] Refined Supabase Schema:
+  - `trips`: [id](file:///Users/patchenuchiyama/Documents/digital-plaid/src/utils/TacticalCoach.ts#101-108), `user_id`, `resort_id`, `start_date`, `end_date`, `goal`, `stamina_score` (1-10).
+  - `guests`: [id](file:///Users/patchenuchiyama/Documents/digital-plaid/src/utils/TacticalCoach.ts#101-108), `trip_id`, `name`, [age](file:///Users/patchenuchiyama/Documents/digital-plaid/src/utils/OfflineStorage.ts#7-53), `gender`, `height_cm`, `sensory_sensitivities` (JSON), `stroller_required` (boolean).
+  - `preferences`: `guest_id`, `item_id`, `item_type`, `rank`, `allergies`, `character_type_pref`, `snack_habit`, `already_done` (boolean), `requires_das` (boolean).
+  - `surveys`: [id](file:///Users/patchenuchiyama/Documents/digital-plaid/src/utils/TacticalCoach.ts#101-108), `trip_id`, `guest_id`, `status` (Sent/Completed/LeaderFilled).
+  - `itinerary_steps`: [id](file:///Users/patchenuchiyama/Documents/digital-plaid/src/utils/TacticalCoach.ts#101-108), `trip_id`, `step_name`, `park_id`, `planned_start`, `actual_start`, `status`, `is_pivot`, `nudge_id`.
+  - `memory_logs`: [id](file:///Users/patchenuchiyama/Documents/digital-plaid/src/utils/TacticalCoach.ts#101-108), `trip_id`, `log_date`, `planned_v_actual`, `sentiment_score`, `memory_note`, `nudge_log` (JSON).
+
+### [Component] Logic Engines
+
+- [NEW] [2026RuleEngine.ts](file:///Users/patchenuchiyama/Documents/digital-plaid/src/utils/2026RuleEngine.ts):
+  - **Dynamic Rule Switching**: WDW/DL logic.
+  - **Pathing Penalty**: +20 min crossing penalty for parades/fireworks.
+  - **Refurbishments**: Hard-coded exclusions.
+- [NEW] [Recalibrator.ts](file:///Users/patchenuchiyama/Documents/digital-plaid/src/utils/Recalibrator.ts):
+  - **The Brain**: Triggers on `Down` or `>20min` spikes.
+  - **Comfort Logic**: Time-aware pivots (1-4 PM) for AC/indoor shows.
+  - **Proximity Search**: Finds Like-to-Do/Characters < 20 min wait.
+- [NEW] [TacticalCoach.ts](file:///Users/patchenuchiyama/Documents/digital-plaid/src/utils/TacticalCoach.ts):
+  - **Persona Identity**: Narrative [Pivot] + [Data] + [Benefit] structure.
+  - **Hanger Watchdog**: 3-hour gap detection for snack nudges.
+  - **Rider Switch Tone**: Logistical empathy for the waiting parent.
+- [NEW] [MemoryRecapScreen.tsx](file:///Users/patchenuchiyama/Documents/digital-plaid/src/screens/MemoryRecapScreen.tsx):
+  - **Comparison Timeline**: Vertical side-by-side (Original vs. Actual).
+  - **Joy Sparkline**: SVG-based chart mapping sentiment.
+  - **Wins Header**: Dynamic calculation of minutes saved.
+- [NEW] `ItineraryProcessor.ts`:
+  - **Logistical Shadows**: Injects 5-10 min buffers for strollers and bio-breaks.
+  - **Parade Walls**: Blocks transitions crossing parade routes during active show windows.
+  - **DAS Filler**: Fills virtual gaps with low-stress shows/snacks.
+- [NEW] [BatteryStrategist.ts](file:///Users/patchenuchiyama/Documents/digital-plaid/src/utils/BatteryStrategist.ts):
+  - **Ultra-Light Mode**: Activates < 20% battery. Switches UI to text-only mode at < 15%.
+  - **Lazy Fetching**: Event-driven data pings.
+
+### [Component] UI/UX
+
+- [NEW] [DesignSystem.ts](file:///Users/patchenuchiyama/Documents/digital-plaid/src/utils/DesignSystem.ts): Theme constants for "Executive Plaid" (Forest Green `#1B3022`, Cream `#F4F1DE`, Gold `#D4AF37`).
+- [NEW] [GroupIntakeScreen.tsx](file:///Users/patchenuchiyama/Documents/digital-plaid/src/screens/GroupIntakeScreen.tsx): Multi-step form for demographics and rankings.
+- [NEW] [TacticalDashboard.tsx](file:///Users/patchenuchiyama/Documents/digital-plaid/src/screens/TacticalDashboard.tsx): Glaceable view of the next steps and nudges.
+- [NEW] `MemoryMakerRecap.tsx`: Side-by-side timeline of Planned vs Actual.
+
+## Verification Plan
+
+### Automated Tests
+
+- Unit tests for `2026RuleEngine` (checking various dates and park IDs).
+- Unit tests for [RiderSwitchProcessor](file:///Users/patchenuchiyama/Documents/digital-plaid/src/utils/RiderSwitchProcessor.ts#3-61) (height validations).
+- Mock Supabase sync tests for offline-first resilience.
+
+### Manual Verification
+
+- Verify the "Executive Plaid" theme colors and high-contrast accessibility.
+- Test the "one-handed" navigation on mobile-sized screen.
+- Simulate wait time spikes to trigger the Recalibrator.

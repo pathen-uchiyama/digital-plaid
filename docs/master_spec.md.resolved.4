@@ -1,0 +1,111 @@
+# Master Specification: Project Digital Plaid (Final)
+
+## I. Technical Architecture & Stack
+
+- **Frontend**: React Native (Expo) with NativeWind.
+- **Backend**: Supabase (Auth, PostgreSQL, Edge Functions).
+- **Offline-First Resilience**: Mandatory local caching (SQLite/AsyncStorage). The app must allow "Check-ins" and "Recalibrations" without internet, syncing to the cloud when signal returns.
+- **Battery Strategy**:
+  - **No Background GPS**: Location is inferred from the "Last Completed Step."
+  - **Lazy Fetching**: Data pings only on Step Completion, Manual Recalibration, or Mobile Order triggers.
+- **Platform**: Initially a PWA (to bypass friction), moving to Native for Live Activity (Lock Screen) support.
+
+## II. Core Feature Set
+
+### 1. The Multi-Guest Intake System
+
+- **Demographics**: Name, Age, Gender, and Height (Mandatory for Rider Switch).
+- **Link-Share Surveys**: Party Leader sends a unique link to each guest.
+- **Can-Act-On-Behalf**: Leader can fill out or skip surveys for those who can't (toddlers/seniors).
+- **Preference Matrix**:
+  - **Rides**: Must-Do, Like-to-Do, Will Avoid.
+  - **Characters**: Must-Meet, Like-to-Meet, Avoid.
+  - **Foodie Profile**: Allergies (automated menu filtering), Cuisine (Adventurous/Safe), Dining Style, and **Snack Habit**.
+- **Ambition Metric**: "The Completionist" vs. "The Relaxed Parent."
+- **Stamina Check**: "Walking Capacity" score (1–10) to cluster activities and minimize cross-park trekking.
+
+### 2. 2026 Temporal Rule Engine
+
+- **Dynamic Switching**: Logic sets flip per day based on ParkID (WDW vs. DL).
+- **Resort Rules**:
+  - **WDW (4 Parks)**: Pre-booking (7/3 days), LL Multi Pass Tiers (1 Tier-1, 2 Tier-2), and 45-min transport buffers.
+  - **DL Resort (DL/DCA)**: Day-of booking, **5-min walking buffers between gates**, and DCA 25th Anniversary event overlays.
+- **2026 Exclusions**: Hard-coded for Big Thunder (WDW), Buzz Lightyear (WDW), Rock 'n' Roller Coaster (Muppet retheme March 2), Jungle Cruise (DL), and Space Mountain (DL).
+- **Special Events**: Support for Hard-Ticket parties (Not-So-Scary) and EPCOT Festivals (Booth Crawl logic).
+
+### 3. Tactical Coach & "Family Peace" Logic
+
+- **Rider Switch Double-Block**: 1.5x duration multiplier for height conflicts. Generates a "Waiting Parent Sub-Step."
+- **Character Interaction Engine**: Alerts 15m before a "Must-Meet" character appears.
+- **Task Killer**: Character Dining automatically marks those characters as "Met."
+- **Mobile Order Watchdog**:
+  - **Hanger Prevention**: Suggests "Snack Clusters" based on location and **Snack Habit** preference.
+  - **Lead-Time Alerts**: [Target Meal Time] - [Current Kitchen Return Time] - 10m Buffer.
+- **Recalibration (Tolerance)**: Only prompts a pivot if a Must-Do wait increases by >20 mins or a ride closes.
+- **Persona**: "Tactical Expert" coach—Expert context, **non-condescending**, narrative style.
+
+### 4. Mini Memory Maker (Recap)
+
+- **Planned vs. Actual**: Vertical side-by-side timeline of the day.
+- **Trophy Room**: "Wait Time Defeated" (Minutes saved) and "Characters High-Fived."
+- **Joy Graph**: Mapping user-submitted emojis/sentiment against the daily timeline.
+- **Memory Note**: Prompt for a high-point description + photo upload.
+- **Nudge Log**: Captures completed "Contextual Nudges" (Photo-ops, Hidden Mickeys, Sensory Cues).
+
+## III. UX/UI Design Philosophy
+
+- **Theme**: "Executive Plaid" (Forest Green #1B3022, Cream #F4F1DE, Gold #D4AF37).
+- **Sunlight Mode**: Ultra-high contrast, 16pt+ sans-serif fonts.
+- **One-Handed Navigation**: All interactive elements focused in the bottom 30% of the screen.
+- **Touch Targets**: Minimum 48x48 pixels.
+- **Nudge Triggers**: Text-based, itinerary-linked (e.g., "Look for the key under the mat at Muppet*Vision").
+- **Recalibrate Button**: Requires a **2-second hold** to prevent accidental triggers.
+
+## V. The "Tactical Expert" Persona Prompts
+
+### 1. Core Persona Identity
+
+"You are the Digital Plaid, a high-end, executive-level Disney Concierge. Your tone is Expert, Protective, and Narrative. You are not a robot; you are a tactical partner for a parent who has 'one shot' at a perfect day. You prioritize 'Family Peace' over raw ride counts. You are never condescending, but you are always decisive."
+
+### 2. The "Why" Logic (Narrative Coaching)
+
+Structure: [The Pivot] + [The Data Reason] + [The Family Benefit].
+*Example*: "Space Mountain is looking a bit backed up right now with a 70-minute standby. Let's pivot to Pirates of the Caribbean; the line is currently under 20 minutes, and the indoor queue will give the kids a chance to cool off before lunch."
+
+### 3. Hanger Prevention & Rider Switch
+
+- **Snack Nudges**: Detect gaps > 3hrs. Trigger based on "Snack Cluster."
+- **Rider Switch Support**: Speak directly to the logistics. "While they ride, Parent B can grab a drink and rest in the shade."
+
+## VI. Mini Memory Maker - User Interface Spec
+
+### 1. The "Digital Scrapbook" Component
+
+- **Wins Header**: "Minutes Saved" (Planned - Actual) and "Characters Met."
+- **Comparison Timeline**: Vertical line. Left (Grey): Original Plan. Right (Forest Green): Actual Path. Connect with "Plaid Gold" at pivot points.
+- **Joy Score**: Sparkline chart of happiness peaks (mapping emojis).
+- **Hidden Gem Badge**: "Disney Pro" badge for finding Hidden Mickeys or nudges.
+
+## VII. The Recalibration Engine (The Brain)
+- **Role**: Tactical Pivot Engine to preserve "Family Peace."
+- **Trigger**: `Status: Down` or `WaitTime > Planned + 20min`.
+- **Decision Logic**:
+    - **Assess Stakes**: Never delete a "Must-Do"; reschedule for a historical dip.
+    - **Proximity**: Look for "Like-to-Do" or "Characters" with wait < 20 min nearby.
+    - **Comfort Pivot (1 PM - 4 PM)**: Prioritize indoor shows, AC character meets, or a "Snack Cluster" over outdoor queues.
+- **Output Template**:
+    - **Headline**: "Tactical Pivot: [Ride] is [Down/Backed Up]."
+    - **Advice**: "Instead of waiting in the sun, let's head to [Suggestion]. It's only a [X] minute walk, and it gets us [AC/Seating/Character]."
+    - **Long-Game**: "I've moved [Original Ride] to [Time Slot] when the lines are expected to drop."
+
+## VIII. Map of the Machine (System Overview)
+| Module | Key Function | Linked Requirement |
+| :--- | :--- | :--- |
+| **Intake API** | Survey Guests | Captures demographics, Must-Dos, Height. |
+| **Rule Engine** | Regional Logic | Flips WDW (Tiers) vs DL (Walking/DCA 25th). |
+| **Rider Switch**| Buffer Logic | 1.5x duration + Waiting Parent steps. |
+| **Food Watchdog**| Hanger Alert | Mobile Order windows + Snack Habit clusters. |
+| **Character Engine**| Task Killing | Dining cross-ref with Must-Meet lists. |
+| **Recalibrator** | Real-time Pivot | Triggers on Down or >20min wait spikes. |
+| **Memory Log** | The Scrapbook | "Planned vs Actual" + Joy Graph. |
+| **Offline Sync** | Resilience | SQLite/AsyncStorage for signal dead zones. |

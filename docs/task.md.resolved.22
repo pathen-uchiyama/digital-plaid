@@ -1,0 +1,52 @@
+# Task: Build Digital Plaid (Final Refinement)
+
+- [x] Final Specification Sync (Snack Habit, Survey Status, Nudges)
+
+- [x] Project Initialization
+  - [x] Initialize Expo project with TypeScript
+  - [x] Configure NativeWind (Tailwind CSS)
+  - [x] Set up Supabase project and client
+- [ ] Data Architecture & Schema
+  - [x] Design Supabase schema (Trips, Guests, Surveys, MemoryLog)
+  - [ ] Initialize [SeasonalRules](file:///Users/patchenuchiyama/Documents/digital-plaid/src/utils/SeasonalRules.ts#3-32) & `ParkExclusions` (Spring 2026 data)
+  - [x] Implement [GuestManager](file:///Users/patchenuchiyama/Documents/digital-plaid/src/hooks/useGuestManager.ts#5-67) API/hooks
+  - [x] Implement Link-Share Survey logic
+  - [x] Implement Stamina Check (Walking Capacity) logic
+- [ ] Core Logic Engines
+  - [/] Build 2026 Temporal Rule Engine (WDW vs DL, Dynamic per day)
+    - [x] Basic switching
+    - [ ] Implement Pathing Penalty (+20 min crossing)
+  - [x] Implement Rider Switch Double-Block Processor
+  - [x] Create Mobile Order Watchdog (Dynamic lead times)
+  - [x] Build Recalibrator (The Brain)
+    - [x] Threshold logic (>20min or Down)
+    - [x] Implement Comfort Pivot (1-4 PM AC logic)
+    - [x] Implement Proximity-based Like-to-Do search
+    - [x] Implement Meltdown/Emergency Baby Care Pivot
+  - [/] Create ItineraryProcessor (Logistical Shadows)
+    - [/] Implement Stroller Buffers (Park & Prep / Retrieve)
+    - [/] Implement Predictive Bio-Breaks (Age-based)
+    - [/] Implement Parade Wall constraints
+    - [ ] Force LogisticalShadow (5-10m) on EVERY step
+    - [ ] Implement "Parade Pathing Obstacle" (Cross-park sprint block)
+  - [x] Implement Character Dining "Task Killer" logic
+  - [x] Implement Lazy Fetching Battery Strategy
+  - [x] Implement Stamina Check (Walking Capacity) logic
+- [x] UI/UX Implementation (Executive Plaid Theme)
+  - [x] Define Design System (Forest Green, Cream, Gold)
+  - [x] Build Unified Group Intake (Demographics & Survey)
+  - [x] Create Tactical Coach Dashboard
+  - [x] Implement 2-second hold Recalibrate button
+  - [x] Implement Presence Nudges (Itinerary-triggered alerts)
+  - [ ] Implement Sensory Awareness (Attribute tagging & nudges)
+  - [ ] Implement Ultra-Light Battery Mode (< 20% logic)
+  - [x] Implement Offline-First Layer (Local caching)
+- [x] Memory Maker & Recap
+  - [x] Build MemoryLog Generator
+  - [x] Implement Planned vs Actual Timeline view (Side-by-side)
+  - [x] Implement Joy Sparkline chart
+  - [x] Implement "Wins" Header & "Hidden Gem" Badges
+- [x] Verification & Testing
+  - [x] Validate Hard Fails (Height, Battery, Rules)
+  - [x] Test Offline syncing (Simulated spotty Wi-Fi)
+  - [x] Validate 2026 Rule Engine scenarios (Refurbs/Anniversaries)

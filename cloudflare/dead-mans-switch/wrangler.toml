@@ -1,0 +1,11 @@
+name = "cc-dead-mans-switch"
+main = "index.ts"
+compatibility_date = "2024-03-10"
+
+# Triggers: This worker runs every 5 minutes to check server health
+[triggers]
+crons = ["*/5 * * * *"]
+
+[vars]
+BACKEND_HEALTH_URL = "http://18.215.69.206:3000/api/health"
+ALERT_WEBHOOK_URL = "" # Add Twilio or Email service alert URL

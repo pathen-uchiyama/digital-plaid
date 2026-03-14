@@ -1,0 +1,14 @@
+name = "cc-otp-sniffer"
+main = "index.ts"
+compatibility_date = "2024-03-10"
+
+# Cloudflare Email Routing configuration
+# Note: You configure the Catch-All trigger via the Cloudflare Dashboard,
+# but the environment variables connecting to your Upstash Redis database
+# flow through this configuration file.
+
+[vars]
+UPSTASH_REDIS_REST_URL = "https://known-ibex-69943.upstash.io"
+
+# The Redis token should be added securely via Wrangler or the CF Dashboard:
+# Run: npx wrangler secret put UPSTASH_REDIS_REST_TOKEN

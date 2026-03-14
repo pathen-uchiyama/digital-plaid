@@ -1,0 +1,56 @@
+# 🏰 Master Specification: Project Digital Plaid (Final & Exhaustive)
+
+## I. Technical Architecture & Stack
+- **Frontend**: React Native (Expo) with NativeWind.
+- **Backend**: Supabase (Postgres, Real-time, Edge Functions).
+- **Offline-First Resilience**: Mandatory local caching (SQLite/AsyncStorage). Must function in Wi-Fi "dead zones."
+- **Battery Strategy**:
+    - **Strict No-GPS**: Location inferred from the "Last Completed Step."
+    - **FuelRod Integration**: Maps nearest swap stations when battery < 20%.
+    - **Lazy Fetching**: API pings only on Step Completion, Manual Recalibrate, or Mobile Order triggers.
+
+## II. The Multi-Guest Intake System
+- **Demographics**: Tracks Name, Age, Gender, and Height (Mandatory for Rider Switch).
+- **Link-Share Surveys**: Unique URLs for all guests; Leader can act on behalf of others.
+- **Preference Matrix**:
+    - **Rides & Characters**: Must-Do, Like-to-Do, Will Avoid.
+    - **Foodie Profile**: Allergies (auto-filter), Cuisine, and Dining Style.
+    - **Sensory Tags**: Sensitivity identification (Loud, Dark, Drops) for warnings.
+    - **Ambition & Stamina**: Day’s pace (1–10 scale) to minimize walking distance.
+
+## III. Year-Round Seasonal Logic Layer
+- **SeasonalCalendar Query**: Adjusts logic based on the date.
+- **Crowd Displacement**: Peak Season counter-programming (Opposite to parade/firework flows).
+- **Magic Key Layer**: Priority to Festivals, Seasonal Snacks, and Limited-Time Characters for locals.
+- **Weather-Driven Prep**: Dynamic Packing Lists (Ponchos/socks for rain; cooling towels for heat).
+
+## IV. 2026 Temporal Rule Engine
+- **Resort Switching**: Flip per day based on ParkID (WDW vs. DL).
+- **WDW (4 Parks)**: Pre-booking (7/3 days), LL Multi Pass Tiers, 45-min transport buffers.
+- **DL Resort (DL/DCA)**: Day-of booking, 5-min walking buffers, DCA 25th event overlays.
+- **2026 Exclusions**: Big Thunder (WDW), Buzz Lightyear (WDW), Rock 'n' Roller Muppet retheme, Jungle Cruise (DL), Space Mountain (DL).
+
+## V. Tactical Coach & "Invisible Itinerary" Logic
+- **Rider Switch Double-Block**: 1.5x duration multiplier + Waiting Parent steps.
+- **Task Killer**: Character Dining automatically marks characters as "Met."
+- **The Bio-Clock (Bathrooms)**: 10-15m "Bio-Break" buffers every 2-3 hours (Party-aware).
+- **Stroller Logic**: 5m "Park & Prep" and "Retrieve" buffers. Exit vs. entrance mapping.
+- **Baby Care Centers**: Prioritized as "Safe Harbors" for families with children < 3 years.
+- **Parade Wall**: Hard-barrier logic preventing crossing during showtimes.
+- **Mobile Order Watchdog**: Dynamic alerts (Kitchen lead time + 10m buffer).
+- **Persona**: "Tactical Expert" — Decisive, protective, narrative style.
+
+## VI. Mini Memory Maker (Recap)
+- **Planned vs. Actual**: Vertical timeline comparison.
+- **Trophy Room**: "Wait Time Defeated," "Characters High-Fived," etc.
+- **Joy Graph**: Sentiment emojis mapped against the timeline.
+- **Memory Note**: High-point description + photo upload.
+
+## VII. UX/UI Design Philosophy
+- **Theme**: "Executive Plaid" (Forest Green, Cream, Gold).
+- **Sunlight Mode**: Ultra-high contrast, 16pt+ sans-serif fonts.
+- **Thumb-Zone Layout**: Interactive elements in bottom 30%.
+- **Nudge Triggers**: Sensory cues, Photo-ops, Hidden Mickeys.
+
+> [!IMPORTANT]
+> **Master Constraint**: Every [ItineraryStep](file:///Users/patchenuchiyama/Documents/digital-plaid/src/types/index.ts#54-74) must include a [LogisticalShadow](file:///Users/patchenuchiyama/Documents/digital-plaid/src/utils/ItineraryProcessor.ts#5-49) (5-10m) for bathroom/stroller management.

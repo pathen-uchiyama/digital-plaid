@@ -1,0 +1,42 @@
+# Implementation Plan - Digital Plaid
+
+Digital Plaid is a high-end, tactical Disney companion PWA designed for parents. It features a 2026-ready rule engine, offline-first resilience, and a sophisticated "Executive Plaid" design.
+
+## Proposed Changes
+
+### [Component] Project Setup
+- [NEW] Initialize Expo (React Native) with TypeScript.
+- [NEW] Integrate NativeWind for styling.
+- [NEW] Setup Supabase for backend services (Auth, Database, Edge Functions).
+
+### [Component] Data Layer
+- [NEW] Supabase Schema:
+    - `trips`: Stores trip metadata (Park IDs, Dates, Party Leader).
+    - `guests`: Stores demographics (Age, Gender, Height).
+    - `surveys`: Stores preferences (Rides, Characters, Food).
+    - `itinerary_steps`: Stores the planned vs actual steps.
+    - `memory_logs`: Stores end-of-day recaps.
+
+### [Component] Logic Engines
+- [NEW] `2026RuleEngine.ts`: Handles WDW (pre-booking) vs DL (day-of) logic, including 2026 refurbishments and event flows.
+- [NEW] `RiderSwitchProcessor.ts`: Calculates buffers based on guest height requirements.
+- [NEW] `MobileOrderWatchdog.ts`: Monitors kitchen lead times and alerts parents.
+- [NEW] `Recalibrator.ts`: Suggests pivot steps when wait times spike.
+
+### [Component] UI/UX
+- [NEW] `DesignSystem.ts`: Theme constants for "Executive Plaid" (Forest Green `#1B3022`, Cream `#F4F1DE`, Gold `#D4AF37`).
+- [NEW] `GroupIntakeScreen.tsx`: Multi-step form for demographics and rankings.
+- [NEW] `TacticalDashboard.tsx`: Glaceable view of the next steps and nudges.
+- [NEW] `MemoryMakerRecap.tsx`: Side-by-side timeline of Planned vs Actual.
+
+## Verification Plan
+
+### Automated Tests
+- Unit tests for `2026RuleEngine` (checking various dates and park IDs).
+- Unit tests for `RiderSwitchProcessor` (height validations).
+- Mock Supabase sync tests for offline-first resilience.
+
+### Manual Verification
+- Verify the "Executive Plaid" theme colors and high-contrast accessibility.
+- Test the "one-handed" navigation on mobile-sized screen.
+- Simulate wait time spikes to trigger the Recalibrator.

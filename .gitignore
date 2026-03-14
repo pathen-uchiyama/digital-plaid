@@ -1,0 +1,8 @@
+node_modules/
+.expo/
+.vscode/
+.DS_Store
+.env.local
+dist/
+build/
+*.log

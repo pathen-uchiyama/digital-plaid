@@ -1,0 +1,57 @@
+# Master Specification - Project Digital Plaid
+
+This is the comprehensive, all-in-one Technical Specification and Product Requirements Document (PRD) for **Digital Plaid**.
+
+## I. Technical Architecture & Stack
+- **Frontend**: React Native (Expo) with NativeWind.
+- **Backend**: Supabase (Auth, PostgreSQL, Edge Functions).
+- **Offline-First**: Uses local caching (SQLite/AsyncStorage) for the daily itinerary. Syncs check-ins and sentiment data to Supabase upon reconnection.
+- **Battery Strategy**: 
+    - No background GPS tracking.
+    - **Lazy Fetching**: Data pings only on Step Completion, Manual Recalibration, or Mobile Order windows. No background timers.
+
+## II. Core Feature Set
+
+### 1. Unified Group Intake
+- **Demographics**: Tracks Name, Age, Gender, and Height (Mandatory for Rider Switch).
+- **Preference Survey**: 
+    - Rides & Characters: Must-Do, Like-to-Do, Avoid.
+    - Foodie Profile: Allergies, Cuisine, and Dining Style.
+- **Ambition Metric**: Sets goal ("The Completionist" vs. "The Relaxed Parent").
+
+### 2. 2026 Temporal Rule Engine
+- **Dynamic Switching**: Flips logic between WDW (Pre-booking 7/3 days, LL Multi Pass Tiers) and DL (Day-of booking, 5m walking buffers) based on the [ParkID](file:///Users/patchenuchiyama/Documents/digital-plaid/src/types/index.ts#3-4) of the current itinerary day.
+- **2026 Hard-Coded Exclusions**:
+    - **WDW**: Big Thunder Mountain, Buzz Lightyear, Rock 'n' Roller Coaster (Post-March 2).
+    - **DL**: Jungle Cruise (Feb), Space Mountain (Late Feb).
+- **Events**: Factor in DCA 25th Anniversary (starts July 2026) crowd flows.
+
+### 3. Tactical Coach & logic
+- **Rider Switch Double-Block**: When a Height Conflict is detected:
+    - **Block A**: Parent 1 rides with tall child.
+    - **Block B**: Parent 2 rides (swap) with tall child.
+    - **Nudge**: Suggests nearby low-wait/sensory-friendly activities during both blocks.
+- **Recalibration (Tolerance)**: Only triggers a "Pivot Step" if a Must-Do wait increases by >20 mins or the ride closes.
+- **Character Dining "Task Killer"**: Character dining automatically marks the corresponding characters as "Met" and removes them from the "Must-Meet" queue.
+- **Mobile Order Watchdog**: Dynamic alerts based on current kitchen return times + 10m buffer.
+- **Persona**: "Tactical Expert" coach (High-utility, expert context, non-robotic).
+
+### 4. Mini Memory Maker (Recap)
+- **Planned vs. Actual**: A vertical side-by-side timeline of the day's events.
+- **Trophy Room**: "Wait Time Defeated" (Minutes saved) and "Characters High-Fived."
+- **Sentiment Mapping**: Joy graph showing emojis mapped against the timeline.
+- **Memory Note**: Prompt for a high-point description + photo.
+
+## III. UX/UI Design Philosophy
+- **Theme**: "Executive Plaid" (Forest Green `#1B3022`, Cream `#F4F1DE`, Gold `#D4AF37`).
+- **Sunlight Mode**: Ultra-high contrast, 16pt+ sans-serif fonts.
+- **One-Handed Navigation**: Interactive elements focused in the bottom 30% of the screen.
+- **Touch Targets**: Minimum 48x48 pixels for all interactive components.
+
+## IV. Logic Edge Cases
+- **Multi-Park Trips**: Logic set flips per day, not per trip.
+- **Rider Switch**: Multiplier of 1.5x duration if height conflict exists.
+- **Character Tracker**: Alert 15m before Must-Meet or prioritize dining spots.
+
+---
+*End of Master Specification*

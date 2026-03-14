@@ -1,0 +1,42 @@
+# Walkthrough - Project Digital Plaid
+
+Digital Plaid is now a functional prototype of a tactical Disney companion app. It features a 2026-ready rule engine, "Rider Switch" double-block logic, and a high-contrast "Executive Plaid" design.
+
+## Key Accomplishments
+
+### 1. 2026 Tactical Rule Engine
+- **Dynamic Logic**: Automatically switches between Disneyland (DL/DCA) and Disney World (WDW) rules based on the park.
+- **Refurbishment Safety**: Hard-coded exclusions for 2026 closures (e.g., Big Thunder Mountain, Space Mountain).
+- **Rider Switch**: Implemented "Double-Block" logic that fairly schedules both parents when a height conflict is detected.
+
+### 2. The Tactical Coach
+- **Recalibration Tolerance**: Only nudges the user if wait times spike by >20 minutes.
+- **Task Killer**: Character dining automatically clears characters from the "Must-Meet" queue.
+- **Watchdog**: Mobile order lead times are calculated dynamically.
+
+### 3. Executive Plaid Design System
+- **High-Contrast**: Sunlight-safe Forest Green, Cream, and Gold palette.
+- **One-Handed Navigation**: All critical actions are located in the bottom 30% of the screen.
+- **Glanceability**: Important mission metrics are visible at the top of the dashboard.
+
+## Demo Flow
+
+````carousel
+```typescript
+// Core Logic: Rider Switch Double-Block
+const blocks = RiderSwitchProcessor.processStep(spaceMountain, guests, 102);
+// Result: Group 1 Round -> Low-Wait Nudge -> Group 2 (Swap) Round
+```
+<!-- slide -->
+![Tactical Dashboard Prototype](file:///Users/patchenuchiyama/Documents/digital-plaid/src/screens/TacticalDashboard.tsx)
+<!-- slide -->
+![Memory Recap Prototype](file:///Users/patchenuchiyama/Documents/digital-plaid/src/screens/MemoryRecapScreen.tsx)
+````
+
+## How to Run
+1. `cd /Users/patchenuchiyama/Documents/digital-plaid`
+2. `npm install`
+3. `npx expo start --web` (to view the PWA simulation)
+
+> [!NOTE]
+> The Supabase connection is pre-configured with the standard initialization script provided in [supabase_schema.sql](file:///Users/patchenuchiyama/Documents/digital-plaid/supabase_schema.sql).
