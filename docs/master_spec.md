@@ -59,8 +59,8 @@
 
 ## VII. UX/UI Design Philosophy
 
-- **Theme**: "Executive Plaid" (Forest Green, Cream, Gold) for mobile; "Sovereign Citadel" (Aged Parchment, Dark Navy, Royal Thistle) for the pre-trip Web-App command center.
-- **Sovereign Dashboard (Web)**: Four-Pillar Mosaic Grid architecture (The Pulse, The Blueprint, The Library & Provisions, The Echo). High-fidelity, sharp-cornered cards with "No-Bleed" data grids.
+- **Theme**: "Executive Plaid" (Forest Green, Cream, Gold) for mobile; "Sophisticated Whimsy" (Aged Parchment, Dark Navy, Royal Thistle, Burnished Gold) for the pre-trip Web-App.
+- **Sophisticated Whimsy Dashboard (Web)**: Four Experience Collections (The Daily Pulse, The Grand Plan, The Field Kit, The Keepsake). Stationery-style cards with sharp corners and "No-Bleed" data grids.
 - **Sunlight Mode**: Ultra-high contrast, 16pt+ sans-serif fonts.
 - **Thumb-Zone Layout**: Interactive elements in bottom 30%.
 - **Nudge Triggers**: Sensory cues, Photo-ops, Hidden Mickeys.
