@@ -88,3 +88,20 @@
 
 > [!IMPORTANT]
 > **Master Constraint**: Every `ItineraryStep` must include a `LogisticalShadow` (5-10m) for bathroom/stroller management.
+
+## XV. Repository Ownership & Tooling Boundaries
+
+> [!CAUTION]
+> **These ownership rules are strict and must never be violated without explicit user approval.**
+
+| Repository | Primary Editor | Antigravity Access | Notes |
+|---|---|---|---|
+| `castle-web` | **Lovable** | 🔒 **Read-Only** | Marketing site. Lovable designs and pushes all changes. Antigravity must NOT commit or push to this repo. |
+| `castle-dashboard` | **Antigravity** | ✅ Full Access | Admin ops dashboard. Antigravity is the primary editor. |
+| `digital-plaid` | **Antigravity** | ✅ Full Access | Mobile app spec & docs. Antigravity is the primary editor. |
+
+### Rules for Antigravity
+
+1. **`castle-web` is READ-ONLY.** Do not create, modify, commit, or push any files in this repo unless the user explicitly requests it *and* confirms they want Antigravity (not Lovable) to make the change.
+2. **Always `git pull` before editing.** Before making changes to any repo, pull the latest from `origin/main` to avoid overwriting remote changes from Lovable or other tools.
+3. **Branch policy.** If the user requests Antigravity changes to a Lovable-owned repo, work on a separate branch (e.g., `antigravity/fix-name`) — never commit directly to `main`.
