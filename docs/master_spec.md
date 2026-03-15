@@ -95,8 +95,8 @@
 > **These ownership rules are strict and must never be violated without explicit user approval.**
 
 | Repository | Primary Editor | Antigravity Access | Notes |
-|---|---|---|---|
-| `castle-web` | **Lovable** | 🔒 **Read-Only** | Marketing site. Lovable designs and pushes all changes. Antigravity must NOT commit or push to this repo. |
+| --- | --- | --- | --- |
+| `castle-web` | **Lovable** | 🔒 **Read-Only** | Marketing site. Sourced from `castle-web2` on GitHub (Lovable-built, cloned 2026-03-15). Old version backed up to `castle-web-backup`. Antigravity must NOT commit or push to this repo. |
 | `castle-dashboard` | **Antigravity** | ✅ Full Access | Admin ops dashboard. Antigravity is the primary editor. |
 | `digital-plaid` | **Antigravity** | ✅ Full Access | Mobile app spec & docs. Antigravity is the primary editor. |
 
