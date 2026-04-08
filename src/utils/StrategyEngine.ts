@@ -84,11 +84,13 @@ export class StrategyEngine {
         prompt += `- Dining is restricted to ${profile.diningStyle}. Do not suggest dining outside of this tier.\n`;
         prompt += `- Splurge Appetite: ${profile.splurgeAppetite?.toUpperCase() || 'LOW'}. \n`;
 
-        // 3-Tier Matrix Awareness
-        if ((profile as any).subscriptionTier === 'explorer') {
-            prompt += `- RESTRICTION: User is on the FREE Explorer Tier. DO NOT suggest dynamic real-time re-routing, auto-booking, or active in-park pivots.\n`;
-        } else if ((profile as any).subscriptionTier === 'plaid_guardian') {
-            prompt += `- AUTHORIZATION: User is a PLAID GUARDIAN. Enable FLASH EXECUTION mode phrasing. Proactively suggest real-time bot automation, Sniffer dining capabilities, and active in-park pivots based on live telemetry.\n`;
+        // 4-Tier Matrix Awareness
+        if ((profile as any).subscriptionTier === 'voyage') {
+            prompt += `- RESTRICTION: User is on the FREE Voyage Tier. DO NOT suggest dynamic real-time re-routing, auto-booking, or active in-park pivots. Focus on the static schedule and the "Joy Report" value.\n`;
+        } else if ((profile as any).subscriptionTier === 'intelligent_blueprint') {
+            prompt += `- AUTHORIZATION: User is an INTELLIGENT BLUEPRINT subscriber. Enable FULL STRATEGIC POWER. Proactively suggest real-time bot automation, Sniffer dining capabilities, and active in-park pivots based on live telemetry.\n`;
+        } else if (['pixie_dust', 'glass_slipper'].includes((profile as any).subscriptionTier)) {
+            prompt += `- AUTHORIZATION: User has a Trip Pass (${(profile as any).subscriptionTier?.replace('_', ' ')}). Enable FLASH EXECUTION and Mobile Automation features for the duration of this journey.\n`;
         }
 
         if (profile.premiumInterests && profile.premiumInterests.length > 0) {

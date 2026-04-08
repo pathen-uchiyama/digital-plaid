@@ -1,6 +1,0 @@
-{
-  "artifactType":  "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
-  "summary":  "Final implementation plan for Spring Break 2026 Stress Test. Includes specific datasets for SeasonalRules, ParkExclusions, and the mandatory 23-minute transition validation.",
-  "updatedAt":  "2026-02-25T22:08:40.816015Z",
-  "version":  "10"
-}

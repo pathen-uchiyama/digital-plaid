@@ -6,29 +6,34 @@ export type FeatureFlag =
     | 'canUseAlerts'
     | 'canUseSniffer'
     | 'canUseAutoBooking'
-    | 'canUseLivePivots';
+    | 'canUseLivePivots'
+    | 'canUseGrandQuest' // Find & Seek Paid
+    | 'canUseEchoes'     // Audio Archival
+    | 'canUseJoyReport'; // Global Free actually but tracked here
 
 export class SubscriptionManager {
     static hasFeatureAccess(tier: SubscriptionTier | undefined, feature: FeatureFlag): boolean {
-        const safeTier = tier || 'explorer';
+        const safeTier = tier || 'voyage';
 
         switch (safeTier) {
-            case 'plaid_guardian':
-                // The Plaid Guardian gets everything
+            case 'intelligent_blueprint':
+                // The Intelligent Blueprint gets everything except maybe some add-on specific bots
                 return true;
 
-            case 'strategic_parent':
-                // Strategic Parent gates
+            case 'glass_slipper':
+            case 'pixie_dust':
+                // These are Trip-Based passes, mostly focused on automation
                 return [
-                    'canUseMultiDay',
-                    'canUseDeepRAG',
-                    'canUseAlerts'
+                    'canUseAlerts',
+                    'canUseSniffer',
+                    'canUseAutoBooking',
+                    'canUseLivePivots'
                 ].includes(feature);
 
-            case 'explorer':
+            case 'voyage':
             default:
-                // Free tier gets none of the premium gating flags
-                return false;
+                // Voyage (Free) only gets the Joy Report and Basic Scavenger Hunt (not a premium flag)
+                return feature === 'canUseJoyReport';
         }
     }
 }

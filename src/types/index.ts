@@ -2,7 +2,7 @@ export type ResortID = 'DL' | 'WDW';
 
 export type ParkID = 'MK' | 'EP' | 'HS' | 'AK' | 'DL' | 'DCA';
 
-export type SubscriptionTier = 'explorer' | 'strategic_parent' | 'plaid_guardian';
+export type SubscriptionTier = 'voyage' | 'pixie_dust' | 'glass_slipper' | 'intelligent_blueprint';
 export type SubscriptionStatus = 'active' | 'past_due' | 'canceled' | 'none';
 
 export type Goal = 'The Completionist' | 'The Relaxed Parent' | 'The Socialite' | 'The Romantic';

@@ -32,7 +32,7 @@ import AdminDashboardScreen from './src/screens/AdminDashboardScreen';
 
 export default function App() {
   const [appState, setAppState] = useState<'onboarding-setup' | 'onboarding-profile' | 'onboarding-invite' | 'onboarding-synopsis' | 'onboarding-itinerary' | 'onboarding-briefing' | 'home' | 'active' | 'account' | 'history' | 'admin-login' | 'admin-dashboard' | 'paywall'>('home');
-  const [subscriptionTier, setSubscriptionTier] = useState<SubscriptionTier>('explorer');
+  const [subscriptionTier, setSubscriptionTier] = useState<SubscriptionTier>('voyage');
   const [isWebLinked, setIsWebLinked] = useState(false);
   console.log('DEBUG: Pocket Plaid App State is:', appState);
   const [currentScreen, setCurrentScreen] = useState<'plan' | 'dining' | 'moments' | 'lead' | 'guardian'>('plan');
