@@ -26,6 +26,7 @@ import { TelemetryEngine, SystemMetric } from '../utils/TelemetryEngine';
 import { AdminOpsManager, AdminUser, Transaction, ReasoningAudit } from '../utils/AdminOpsManager';
 import { autoBookingEngine } from '../utils/AutoBookingManager';
 import { THEME } from '../utils/DesignSystem';
+import { Config } from '../config/Config';
 
 interface AdminDashboardScreenProps {
     onBack: () => void;
@@ -157,83 +158,201 @@ export default function AdminDashboardScreen({ onBack }: AdminDashboardScreenPro
         </ScrollView>
     );
 
-    const renderFleetTab = () => (
+    const [fleetHealth, setFleetHealth] = useState<any>(null);
+    const [fleetLoading, setFleetLoading] = useState(false);
+
+    // Fetch live fleet health from backend
+    const fetchFleetHealth = async () => {
+        setFleetLoading(true);
+        try {
+            const response = await fetch(`${Config.API_BASE_URL}/admin/fleet/health`);
+            if (response.ok) {
+                const data = await response.json();
+                setFleetHealth(data);
+            }
+        } catch (err) {
+            console.warn('Fleet health fetch failed:', err);
+        }
+        setFleetLoading(false);
+    };
+
+    useEffect(() => {
+        if (activeTab === 'fleet') fetchFleetHealth();
+    }, [activeTab]);
+
+    const renderFleetTab = () => {
+        const fh = fleetHealth;
+        const pool = fh?.poolStats;
+        const attrition = fh?.registrationAttrition;
+        const breakdown = fh?.categoryBreakdown || [];
+
+        return (
         <ScrollView className="flex-1 px-8" showsVerticalScrollIndicator={false}>
-            <Text className="text-plaid-gold font-header text-[10px] uppercase tracking-[3px] mb-6">Sniper Fleet Management</Text>
-
-            <View className="bg-white rounded-[30px] p-8 shadow-sm mb-8 border border-plaid-navy/5">
-                <View className="flex-row justify-between items-center mb-6">
-                    <View>
-                        <Text className="text-plaid-navy font-header text-sm">Active Sniper Bots</Text>
-                        <Text className="text-plaid-navy/40 font-body text-[10px]">Real-time instances across all parks.</Text>
-                    </View>
-                    <Text className="text-plaid-navy font-header text-3xl">{fleetConfig.activeBots}</Text>
-                </View>
-
-                <View className="flex-row items-center justify-between bg-plaid-navy/5 p-4 rounded-2xl mb-4">
-                    <Text className="text-plaid-navy font-header text-[10px] uppercase tracking-widest">Target Fleet Size</Text>
-                    <View className="flex-row items-center">
-                        <TouchableOpacity
-                            onPress={() => handleUpdateFleet({ targetBotCount: Math.max(0, fleetConfig.targetBotCount - 5) })}
-                            className="w-10 h-10 bg-white rounded-full items-center justify-center border border-plaid-navy/5"
-                        >
-                            <Text className="text-xl">-</Text>
-                        </TouchableOpacity>
-                        <Text className="mx-6 font-header text-lg">{fleetConfig.targetBotCount}</Text>
-                        <TouchableOpacity
-                            onPress={() => handleUpdateFleet({ targetBotCount: fleetConfig.targetBotCount + 5 })}
-                            className="w-10 h-10 bg-white rounded-full items-center justify-center border border-plaid-navy/5"
-                        >
-                            <Text className="text-xl">+</Text>
-                        </TouchableOpacity>
-                    </View>
-                </View>
-                <Text className="text-plaid-navy/30 font-body text-[8px] italic text-center">
-                    Spinning up new bots may take 30-60 seconds to initialize in the target park land.
-                </Text>
+            {/* Refresh Button */}
+            <View className="flex-row justify-between items-center mb-6">
+                <Text className="text-plaid-gold font-header text-[10px] uppercase tracking-[3px]">Fleet Capacity Overview</Text>
+                <TouchableOpacity onPress={fetchFleetHealth} className="flex-row items-center bg-plaid-navy/5 px-3 py-2 rounded-xl">
+                    <RefreshCcw size={12} color={THEME.colors.navy} />
+                    <Text className="text-plaid-navy font-header text-[8px] uppercase tracking-widest ml-1.5">
+                        {fleetLoading ? 'Loading...' : 'Refresh'}
+                    </Text>
+                </TouchableOpacity>
             </View>
 
-            <Text className="text-plaid-gold font-header text-[10px] uppercase tracking-[3px] mb-6">Production Cost Controls</Text>
-
-            <View className="bg-white rounded-[30px] p-6 mb-20 border border-plaid-navy/5">
-                <View className="py-4 border-b border-plaid-navy/5">
-                    <View className="flex-row justify-between items-center mb-2">
-                        <Text className="text-plaid-navy font-header text-sm">Daily API Quota</Text>
-                        <Text className="text-plaid-navy font-header text-sm">{fleetConfig.apiThreshold.toLocaleString()}</Text>
-                    </View>
-                    <View className="h-2 bg-plaid-navy/5 rounded-full overflow-hidden">
-                        <View style={{ width: '45%' }} className="h-full bg-plaid-gold" />
-                    </View>
-                    <Text className="text-plaid-navy/40 font-body text-[8px] mt-2 uppercase">4,512 / 10,000 requests used (45%)</Text>
+            {!fh ? (
+                <View className="bg-white rounded-[30px] p-8 items-center border border-plaid-navy/5 mb-8">
+                    <Text className="text-plaid-navy/40 font-body text-sm">
+                        {fleetLoading ? 'Fetching fleet health...' : 'Tap Refresh to load live fleet data'}
+                    </Text>
                 </View>
+            ) : (
+                <>
+                    {/* Total Capacity Header */}
+                    <View className="bg-white rounded-[30px] p-8 shadow-sm mb-6 border border-plaid-navy/5">
+                        <View className="flex-row justify-between items-center mb-4">
+                            <View>
+                                <Text className="text-plaid-navy font-header text-sm">Total Booking Agents</Text>
+                                <Text className="text-plaid-navy/40 font-body text-[10px]">All categories sum to this total</Text>
+                            </View>
+                            <Text className="text-plaid-navy font-header text-3xl">{pool?.total || 0}</Text>
+                        </View>
 
-                <View className="py-4 border-b border-plaid-navy/5">
-                    <View className="flex-row justify-between items-center mb-2">
-                        <Text className="text-plaid-navy font-header text-sm">Monthly Token Cap</Text>
-                        <Text className="text-plaid-navy font-header text-sm">{(fleetConfig.tokenCap / 1000000).toFixed(1)}M</Text>
-                    </View>
-                    <View className="h-2 bg-plaid-navy/5 rounded-full overflow-hidden">
-                        <View style={{ width: '68%' }} className="h-full bg-plaid-teal" />
-                    </View>
-                    <Text className="text-plaid-navy/40 font-body text-[8px] mt-2 uppercase">682,410 / 1,000,000 tokens used (68%)</Text>
-                </View>
+                        {/* Stacked Capacity Bar */}
+                        <View className="h-4 bg-plaid-navy/5 rounded-full overflow-hidden flex-row mb-4">
+                            {breakdown.map((cat: any, i: number) => (
+                                <View
+                                    key={cat.category}
+                                    style={{
+                                        width: `${cat.percent}%`,
+                                        backgroundColor: cat.color,
+                                        borderLeftWidth: i > 0 ? 1 : 0,
+                                        borderLeftColor: 'white',
+                                    }}
+                                    className="h-full"
+                                />
+                            ))}
+                        </View>
 
-                <View className="py-4 border-b border-plaid-navy/5 flex-row justify-between items-center">
-                    <View>
-                        <Text className="text-plaid-navy font-header text-sm">Auto-Scale Ceiling</Text>
-                        <Text className="text-plaid-navy/40 font-body text-[8px]">Prevent cost spikes during holidays.</Text>
+                        {/* Category Legend */}
+                        <View className="flex-row flex-wrap">
+                            {breakdown.map((cat: any) => (
+                                <View key={cat.category} className="flex-row items-center mr-4 mb-2">
+                                    <View style={{ backgroundColor: cat.color }} className="w-2.5 h-2.5 rounded-full mr-1.5" />
+                                    <Text className="text-plaid-navy/60 font-header text-[8px] uppercase tracking-wide">
+                                        {cat.category}: {cat.count} ({cat.percent}%)
+                                    </Text>
+                                </View>
+                            ))}
+                        </View>
                     </View>
-                    <Switch value={true} trackColor={{ false: '#12232E11', true: '#D4AF37' }} />
-                </View>
 
-                <View className="py-4 flex-row justify-between items-center">
-                    <View>
-                        <Text className="text-plaid-navy font-header text-sm">Emergency Cost Halt</Text>
-                        <Text className="text-plaid-navy/40 font-body text-[8px]">Pause all paid APIs instantly.</Text>
+                    {/* Individual Category Cards */}
+                    <View className="flex-row flex-wrap justify-between mb-6">
+                        {[
+                            { label: 'Active', value: pool?.active, desc: 'Assigned to trips', color: '#489B9E' },
+                            { label: 'Available', value: pool?.available, desc: 'Ready for assignment', color: '#D4AF37' },
+                            { label: 'Incubating', value: pool?.incubating, desc: 'Warming up', color: '#6B7FD7' },
+                            { label: 'Unregistered', value: pool?.unregistered, desc: 'Not yet registered', color: '#95A5A6' },
+                            { label: 'Pending', value: pool?.pending, desc: 'In registration flow', color: '#E8A87C' },
+                            { label: 'Banned', value: pool?.banned, desc: 'Detected & deactivated', color: '#B33951' },
+                        ].map((stat) => (
+                            <View key={stat.label} className="w-[31%] bg-white p-4 rounded-[20px] mb-3 border border-plaid-navy/5">
+                                <View className="flex-row items-center mb-2">
+                                    <View style={{ backgroundColor: stat.color }} className="w-2 h-2 rounded-full mr-1.5" />
+                                    <Text className="text-plaid-navy/40 font-header text-[7px] uppercase tracking-widest">{stat.label}</Text>
+                                </View>
+                                <Text className="text-plaid-navy font-header text-lg">{stat.value ?? 0}</Text>
+                                <Text className="text-plaid-navy/30 font-body text-[7px]">{stat.desc}</Text>
+                            </View>
+                        ))}
                     </View>
-                    <Switch value={false} trackColor={{ false: '#12232E11', true: '#B33951' }} />
-                </View>
-            </View>
+
+                    {/* Registration Attrition — the key metric */}
+                    <Text className="text-plaid-gold font-header text-[10px] uppercase tracking-[3px] mb-4">Registration Attrition</Text>
+                    <View className="bg-white rounded-[30px] p-6 mb-6 border border-plaid-navy/5">
+                        <View className="flex-row justify-between mb-4">
+                            <View className="flex-1 mr-3">
+                                <Text className="text-plaid-navy/40 font-header text-[8px] uppercase tracking-widest mb-1">Attempted Registrations</Text>
+                                <Text className="text-plaid-navy font-header text-xl">{attrition?.attempted ?? 0}</Text>
+                                <Text className="text-plaid-navy/30 font-body text-[7px]">Accounts that entered the registration pipeline</Text>
+                            </View>
+                            <View className="flex-1 ml-3">
+                                <Text className="text-plaid-navy/40 font-header text-[8px] uppercase tracking-widest mb-1">Banned from Attempted</Text>
+                                <Text className={`font-header text-xl ${(attrition?.attritionPercent ?? 0) > 50 ? 'text-plaid-rose' : (attrition?.attritionPercent ?? 0) > 25 ? 'text-plaid-gold' : 'text-plaid-teal'}`}>
+                                    {attrition?.bannedFromAttempted ?? 0} ({attrition?.attritionPercent ?? 0}%)
+                                </Text>
+                                <Text className="text-plaid-navy/30 font-body text-[7px]">True failure rate of registration attempts</Text>
+                            </View>
+                        </View>
+
+                        {/* Attrition vs Overall comparison */}
+                        <View className="bg-plaid-navy/5 p-4 rounded-2xl">
+                            <View className="flex-row justify-between items-center">
+                                <View>
+                                    <Text className="text-plaid-navy/50 font-header text-[8px] uppercase">Attrition Rate (of attempted)</Text>
+                                    <Text className={`font-header text-lg ${(attrition?.attritionPercent ?? 0) > 50 ? 'text-plaid-rose' : 'text-plaid-navy'}`}>
+                                        {attrition?.attritionPercent ?? 0}%
+                                    </Text>
+                                </View>
+                                <View className="w-[1px] h-10 bg-plaid-navy/10" />
+                                <View>
+                                    <Text className="text-plaid-navy/50 font-header text-[8px] uppercase">Banned % (of total fleet)</Text>
+                                    <Text className="text-plaid-navy/40 font-header text-lg">
+                                        {attrition?.bannedOverallPercent ?? 0}%
+                                    </Text>
+                                </View>
+                            </View>
+                            <Text className="text-plaid-navy/30 font-body text-[7px] mt-2 italic">
+                                Attrition rate shows actual failure rate of registration attempts. Overall % is diluted by unregistered accounts.
+                            </Text>
+                        </View>
+                    </View>
+
+                    {/* Recent Bans & Domain Info */}
+                    <View className="flex-row justify-between mb-6">
+                        <View className="w-[48%] bg-white p-5 rounded-[25px] border border-plaid-navy/5">
+                            <Text className="text-plaid-navy/40 font-header text-[8px] uppercase tracking-widest mb-2">Bans (24h)</Text>
+                            <Text className={`text-plaid-navy font-header text-2xl ${(fh?.recentBans24h ?? 0) > 3 ? 'text-plaid-rose' : ''}`}>
+                                {fh?.recentBans24h ?? 0}
+                            </Text>
+                        </View>
+                        <View className="w-[48%] bg-white p-5 rounded-[25px] border border-plaid-navy/5">
+                            <Text className="text-plaid-navy/40 font-header text-[8px] uppercase tracking-widest mb-2">Active Domains</Text>
+                            <Text className="text-plaid-navy font-header text-2xl">
+                                {fh?.activeDomains ?? 0} / {fh?.totalDomains ?? 0}
+                            </Text>
+                        </View>
+                    </View>
+
+                    {/* Warm Reserve & Incubation */}
+                    <View className="flex-row justify-between mb-6">
+                        <View className="w-[48%] bg-white p-5 rounded-[25px] border border-plaid-navy/5">
+                            <Text className="text-plaid-navy/40 font-header text-[8px] uppercase tracking-widest mb-2">Warm Reserve</Text>
+                            <Text className="text-plaid-navy font-header text-2xl">{fh?.warmReservePercent ?? 0}%</Text>
+                        </View>
+                        <View className="w-[48%] bg-white p-5 rounded-[25px] border border-plaid-navy/5">
+                            <Text className="text-plaid-navy/40 font-header text-[8px] uppercase tracking-widest mb-2">Incubation Ready</Text>
+                            <Text className="text-plaid-navy font-header text-2xl">
+                                {fh?.incubationPipeline?.readyWithin24h ?? 0} / {fh?.incubationPipeline?.total ?? 0}
+                            </Text>
+                        </View>
+                    </View>
+
+                    {/* Friend Capacity */}
+                    <Text className="text-plaid-gold font-header text-[10px] uppercase tracking-[3px] mb-4">Friend Capacity Utilization</Text>
+                    <View className="bg-white rounded-[30px] p-6 mb-20 border border-plaid-navy/5">
+                        <View className="h-3 bg-plaid-navy/5 rounded-full overflow-hidden mb-3">
+                            <View
+                                style={{ width: `${Math.round((pool?.friendCapUtilization ?? 0) * 100)}%` }}
+                                className={`h-full rounded-full ${(pool?.friendCapUtilization ?? 0) > 0.8 ? 'bg-plaid-rose' : 'bg-plaid-teal'}`}
+                            />
+                        </View>
+                        <Text className="text-plaid-navy/40 font-body text-[8px] uppercase">
+                            {Math.round((pool?.friendCapUtilization ?? 0) * 100)}% of friend slots used across all active agents
+                        </Text>
+                    </View>
+                </>
+            )}
         </ScrollView>
     ); const renderEfficiencyTab = () => (
         <ScrollView className="flex-1 px-8" showsVerticalScrollIndicator={false}>
