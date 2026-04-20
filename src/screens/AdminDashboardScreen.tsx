@@ -20,7 +20,11 @@ import {
     Beaker,
     ClipboardList,
     AlertTriangle,
-    Navigation2
+    Navigation2,
+    Wifi,
+    WifiOff,
+    HeartPulse,
+    CircleAlert
 } from 'lucide-react-native';
 import { TelemetryEngine, SystemMetric } from '../utils/TelemetryEngine';
 import { AdminOpsManager, AdminUser, Transaction, ReasoningAudit } from '../utils/AdminOpsManager';
@@ -46,6 +50,37 @@ export default function AdminDashboardScreen({ onBack }: AdminDashboardScreenPro
     const [simProfile, setSimProfile] = useState('The Commando');
     const [simResult, setSimResult] = useState<string | null>(null);
     const [isSimulating, setIsSimulating] = useState(false);
+
+    // Bot Pipeline Health
+    const [botHealth, setBotHealth] = useState<any>(null);
+    const [botHealthLoading, setBotHealthLoading] = useState(false);
+
+    const fetchBotHealth = async (forceRefresh = false) => {
+        setBotHealthLoading(true);
+        try {
+            const url = `${Config.API_BASE_URL}/admin/session-health${forceRefresh ? '?refresh=true' : ''}`;
+            const response = await fetch(url);
+            if (response.ok) {
+                const data = await response.json();
+                setBotHealth(data);
+            }
+        } catch (err) {
+            console.warn('Bot health fetch failed:', err);
+        }
+        setBotHealthLoading(false);
+    };
+
+    // Auto-fetch bot health on mount + every 30s when on health tab
+    useEffect(() => {
+        fetchBotHealth();
+    }, []);
+
+    useEffect(() => {
+        if (activeTab === 'health') {
+            const interval = setInterval(() => fetchBotHealth(), 30000);
+            return () => clearInterval(interval);
+        }
+    }, [activeTab]);
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -133,6 +168,134 @@ export default function AdminDashboardScreen({ onBack }: AdminDashboardScreenPro
                     </View>
                 ))}
             </View>
+
+            {/* ── Bot Pipeline Health ── */}
+            <View className="flex-row justify-between items-center mb-4">
+                <Text className="text-plaid-gold font-header text-[10px] uppercase tracking-[3px]">Bot Pipeline Health</Text>
+                <TouchableOpacity onPress={() => fetchBotHealth(true)} className="flex-row items-center bg-plaid-navy/5 px-3 py-2 rounded-xl">
+                    <RefreshCcw size={10} color={THEME.colors.navy} />
+                    <Text className="text-plaid-navy font-header text-[7px] uppercase tracking-widest ml-1">
+                        {botHealthLoading ? 'Loading...' : 'Refresh'}
+                    </Text>
+                </TouchableOpacity>
+            </View>
+
+            {botHealth ? (
+                <>
+                    {/* Status Banner */}
+                    <View className={`p-5 rounded-[25px] mb-6 flex-row items-center border ${
+                        botHealth.status === 'HEALTHY' ? 'bg-plaid-teal/10 border-plaid-teal/30' :
+                        botHealth.status === 'DEGRADED' ? 'bg-plaid-gold/10 border-plaid-gold/30' :
+                        'bg-plaid-rose/10 border-plaid-rose/30'
+                    }`}>
+                        {botHealth.status === 'HEALTHY' ? (
+                            <Wifi size={18} color={THEME.colors.teal} />
+                        ) : botHealth.status === 'DEGRADED' ? (
+                            <CircleAlert size={18} color={THEME.colors.gold} />
+                        ) : (
+                            <WifiOff size={18} color={THEME.colors.rose} />
+                        )}
+                        <View className="ml-4 flex-1">
+                            <Text className={`font-header text-sm ${
+                                botHealth.status === 'HEALTHY' ? 'text-plaid-teal' :
+                                botHealth.status === 'DEGRADED' ? 'text-plaid-gold' : 'text-plaid-rose'
+                            }`}>
+                                {botHealth.status === 'HEALTHY' ? 'Bot Pipeline Active' :
+                                 botHealth.status === 'DEGRADED' ? 'Pipeline Degraded' : 'Pipeline Down'}
+                            </Text>
+                            <Text className="text-plaid-navy/40 font-body text-[8px] mt-0.5">
+                                Data Source: {botHealth.dataSource === 'DISNEY_API' ? '🤖 Disney API (30s)' : '🌐 ThemeParks.wiki (fallback)'}
+                            </Text>
+                        </View>
+                    </View>
+
+                    {/* Stats Grid */}
+                    <View className="flex-row flex-wrap justify-between mb-6">
+                        <View className="w-[31%] bg-white p-4 rounded-[20px] border border-plaid-navy/5 mb-3">
+                            <View className="flex-row items-center mb-2">
+                                <HeartPulse size={12} color={botHealth.activeSessions > 0 ? THEME.colors.teal : THEME.colors.rose} />
+                                <Text className="text-plaid-navy/40 font-header text-[7px] uppercase tracking-widest ml-1">Sessions</Text>
+                            </View>
+                            <Text className={`font-header text-xl ${botHealth.activeSessions > 0 ? 'text-plaid-navy' : 'text-plaid-rose'}`}>
+                                {botHealth.activeSessions}
+                            </Text>
+                        </View>
+                        <View className="w-[31%] bg-white p-4 rounded-[20px] border border-plaid-navy/5 mb-3">
+                            <View className="flex-row items-center mb-2">
+                                <Zap size={12} color={botHealth.circuitBreaker === 'CLOSED' ? THEME.colors.teal : THEME.colors.rose} />
+                                <Text className="text-plaid-navy/40 font-header text-[7px] uppercase tracking-widest ml-1">Circuit</Text>
+                            </View>
+                            <Text className={`font-header text-sm ${botHealth.circuitBreaker === 'CLOSED' ? 'text-plaid-teal' : 'text-plaid-rose'}`}>
+                                {botHealth.circuitBreaker}
+                            </Text>
+                        </View>
+                        <View className="w-[31%] bg-white p-4 rounded-[20px] border border-plaid-navy/5 mb-3">
+                            <View className="flex-row items-center mb-2">
+                                <Clock size={12} color={THEME.colors.navy} />
+                                <Text className="text-plaid-navy/40 font-header text-[7px] uppercase tracking-widest ml-1">Last Poll</Text>
+                            </View>
+                            <Text className="text-plaid-navy font-header text-[10px]">
+                                {botHealth.lastBotPoll
+                                    ? new Date(botHealth.lastBotPoll).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+                                    : 'Never'}
+                            </Text>
+                        </View>
+                    </View>
+
+                    {/* Active Alerts */}
+                    {botHealth.alerts && botHealth.alerts.length > 0 && (
+                        <View className="mb-6">
+                            {botHealth.alerts.map((alert: any, i: number) => (
+                                <View key={i} className={`p-4 rounded-2xl mb-2 flex-row items-start border ${
+                                    alert.level === 'CRITICAL' ? 'bg-plaid-rose/10 border-plaid-rose/20' :
+                                    alert.level === 'WARNING' ? 'bg-plaid-gold/10 border-plaid-gold/20' :
+                                    'bg-plaid-teal/10 border-plaid-teal/20'
+                                }`}>
+                                    {alert.level === 'CRITICAL' ? <ShieldAlert size={14} color={THEME.colors.rose} /> :
+                                     alert.level === 'WARNING' ? <AlertTriangle size={14} color={THEME.colors.gold} /> :
+                                     <CheckCircle2 size={14} color={THEME.colors.teal} />}
+                                    <View className="ml-3 flex-1">
+                                        <Text className={`font-header text-[9px] uppercase ${
+                                            alert.level === 'CRITICAL' ? 'text-plaid-rose' :
+                                            alert.level === 'WARNING' ? 'text-plaid-gold' : 'text-plaid-teal'
+                                        }`}>{alert.level}: {alert.code}</Text>
+                                        <Text className="text-plaid-navy/60 font-body text-[9px] mt-1">{alert.message}</Text>
+                                    </View>
+                                </View>
+                            ))}
+                        </View>
+                    )}
+
+                    {/* Recent Alert History */}
+                    {botHealth.recentAlerts && botHealth.recentAlerts.length > 0 && (
+                        <View className="mb-6">
+                            <Text className="text-plaid-navy/30 font-header text-[8px] uppercase tracking-widest mb-3">Alert History</Text>
+                            <View className="bg-white rounded-[25px] border border-plaid-navy/5 overflow-hidden">
+                                {botHealth.recentAlerts.slice(0, 8).map((alert: any, i: number) => (
+                                    <View key={i} className={`flex-row items-center px-4 py-3 ${i < Math.min(botHealth.recentAlerts.length, 8) - 1 ? 'border-b border-plaid-navy/5' : ''}`}>
+                                        <View className={`w-2 h-2 rounded-full mr-3 ${
+                                            alert.alert_level === 'CRITICAL' ? 'bg-plaid-rose' :
+                                            alert.alert_level === 'WARNING' ? 'bg-plaid-gold' : 'bg-plaid-teal'
+                                        }`} />
+                                        <View className="flex-1">
+                                            <Text className="text-plaid-navy/60 font-body text-[9px]" numberOfLines={1}>{alert.message}</Text>
+                                        </View>
+                                        <Text className="text-plaid-navy/30 font-header text-[7px] ml-2">
+                                            {new Date(alert.created_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+                                        </Text>
+                                    </View>
+                                ))}
+                            </View>
+                        </View>
+                    )}
+                </>
+            ) : (
+                <View className="bg-white rounded-[25px] p-6 items-center border border-plaid-navy/5 mb-6">
+                    <Text className="text-plaid-navy/40 font-body text-sm">
+                        {botHealthLoading ? 'Loading bot health...' : 'Bot health unavailable'}
+                    </Text>
+                </View>
+            )}
 
             {/* Kill Switches */}
             <Text className="text-plaid-gold font-header text-[10px] uppercase tracking-[3px] mb-6">Strategic Overrides</Text>
@@ -354,7 +517,10 @@ export default function AdminDashboardScreen({ onBack }: AdminDashboardScreenPro
                 </>
             )}
         </ScrollView>
-    ); const renderEfficiencyTab = () => (
+    );
+    };
+
+    const renderEfficiencyTab = () => (
         <ScrollView className="flex-1 px-8" showsVerticalScrollIndicator={false}>
             <Text className="text-plaid-gold font-header text-[10px] uppercase tracking-[3px] mb-6">Unit Economics & Leakage</Text>
 
