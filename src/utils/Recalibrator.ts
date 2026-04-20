@@ -22,9 +22,13 @@ export class Recalibrator {
 
         // 1. Check if we actually need a pivot
         const waitSpike = (currentStep.actual_wait || 0) - (currentStep.planned_wait || 0) > 20;
-        const isDown = currentStep.status === 'down';
+        const status = currentStep.status as string;
+        const isDown = status === 'down' || status === 'DOWN';
+        const isEarlyClosed = status === 'EARLY_CLOSE' || status === 'early_close';
+        const isNotYetOpen = status === 'LATE_OPEN' || status === 'NOT_YET_OPEN' || status === 'not_yet_open';
+        const needsPivot = isDown || isEarlyClosed || isNotYetOpen || waitSpike;
 
-        if (!isDown && !waitSpike && !isRaining) return null;
+        if (!needsPivot && !isRaining) return null;
 
         // 2. Proximity Search for "Like-to-Do" or Characters nearby
         let suggested = nearbyOptions.find(opt => {
@@ -41,7 +45,7 @@ export class Recalibrator {
                 id: 'snack_pivot_1',
                 trip_id: currentStep.trip_id,
                 park_id: currentStep.park_id,
-                step_name: 'Gaston’s Tavern (Comfort Pivot)',
+                step_name: 'Gaston\'s Tavern (Comfort Pivot)',
                 step_type: 'snack',
                 planned_start: currentTime.toISOString(),
                 status: 'pending',
@@ -50,23 +54,40 @@ export class Recalibrator {
             } as ItineraryStep;
         }
 
-        // 3. Construct Narrative Data
+        // 3. Construct Narrative Data — context-aware by closure type
+        let reason: string;
         let benefit = isPeakHeat
             ? "the indoor AC will give everyone a chance to cool off"
             : "the line is currently under 20 minutes and keeps our momentum";
+        let longGame: string;
 
         if (isRaining) {
+            reason = "The forecast shifted! Let's get the family under cover.";
             benefit = "it provides a solid indoor buffer while the storm passes";
+            longGame = `I've moved ${currentStep.step_name} to a later slot when conditions are expected to improve.`;
+        } else if (isEarlyClosed) {
+            reason = `${currentStep.step_name} has closed early for the evening — this is a scheduled closure, not an outage.`;
+            benefit = "we can use the remaining time for a bonus experience nearby";
+            longGame = `${currentStep.step_name} will reopen tomorrow. I've shifted it to tomorrow's plan if available.`;
+        } else if (isNotYetOpen) {
+            reason = `${currentStep.step_name} hasn't opened yet today — it has a later start time than standard park open.`;
+            benefit = "we can knock out a shorter wait ride nearby and circle back";
+            longGame = `I'll slot ${currentStep.step_name} in once it opens. No need to wait at the entrance.`;
+        } else if (isDown) {
+            reason = `${currentStep.step_name} is currently experiencing a system outage (DOWN).`;
+            benefit = "we avoid burning time in a queue that may not move";
+            longGame = `I've moved ${currentStep.step_name} to a later slot when conditions are expected to improve.`;
+        } else {
+            reason = `${currentStep.step_name} wait time has spiked.`;
+            longGame = `I've moved ${currentStep.step_name} to a later slot when conditions are expected to improve.`;
         }
 
         const decision: PivotDecision = {
             originalStep: currentStep,
             suggestedStep: suggested,
-            reason: isRaining
-                ? "The forecast shifted! Let's get the family under cover."
-                : (isDown ? `${currentStep.step_name} is currently Down.` : `${currentStep.step_name} wait time has spiked.`),
+            reason,
             benefit,
-            longGame: `I've moved ${currentStep.step_name} to a later slot when conditions are expected to improve.`
+            longGame
         };
 
         return decision;

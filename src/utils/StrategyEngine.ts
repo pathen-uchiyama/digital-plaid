@@ -1,4 +1,4 @@
-import { StrategyProfile, SubscriptionTier } from '../types';
+import { StrategyProfile, SubscriptionTier, Ride } from '../types';
 
 export interface ModularInputs {
     pacing: 'intense' | 'moderate' | 'relaxed';
@@ -74,10 +74,14 @@ export class StrategyEngine {
     }
 
     /**
-     * Optional: Generate a natural language context string for the Reasoning Engine (RAG)
+     * Generate a natural language context string for the Reasoning Engine (RAG)
      * based on the modular strategy profile.
+     * 
+     * @param rideData Optional array of rides with backend-enriched metadata.
+     *                 When provided, generates dynamic single rider + EE/EEH context
+     *                 instead of hardcoded ride names.
      */
-    static generatePromptContext(profile: StrategyProfile): string {
+    static generatePromptContext(profile: StrategyProfile, rideData?: Ride[]): string {
         let prompt = `Strict Touring Profile:\n`;
         prompt += `- Pacing is strictly ${profile.pacingFilter}. `;
         prompt += `- The primary focus of the group is ${profile.primaryFocus}.\n`;
@@ -97,9 +101,22 @@ export class StrategyEngine {
             prompt += `Prioritize these premium experiences: ${profile.premiumInterests.join(', ')}.\n`;
         }
 
+        // Dynamic single rider context from backend metadata
         if (profile.singleRiderAllowed) {
-            prompt += `- Single Rider is authorized. Prioritize Test Track, Everest, and Smugglers Run where Wait Time > 45 mins.\n`;
+            if (rideData && rideData.length > 0) {
+                const srRides = rideData.filter(r => r.singleRider);
+                if (srRides.length > 0) {
+                    const srNames = srRides.map(r => r.name).join(', ');
+                    prompt += `- Single Rider is authorized. Available Single Rider lines: ${srNames}. Prioritize these when Wait Time > 45 mins.\n`;
+                } else {
+                    prompt += `- Single Rider is authorized but no rides in this park have Single Rider lines.\n`;
+                }
+            } else {
+                // Fallback: no ride data available
+                prompt += `- Single Rider is authorized. Prioritize Test Track, Everest, and Smugglers Run where Wait Time > 45 mins.\n`;
+            }
         }
+
         if (!profile.budgetDirectives.llMultiPassAllowed) {
             prompt += `- NO LIGHTNING LANE MULTI PASS AUTHORIZED. Standard standby strategies only.\n`;
         }
@@ -110,6 +127,22 @@ export class StrategyEngine {
 
         if (profile.arrivalIntent) {
             prompt += `- Arrival intent is ${profile.arrivalIntent}. Plan standby queues accordingly.\n`;
+        }
+
+        // Early Entry / EEH strategy context
+        if (rideData && rideData.length > 0 && profile.onSiteResort) {
+            const eeRides = rideData.filter(r => r.earlyEntryAvailable);
+            if (eeRides.length > 0 && profile.arrivalIntent === 'rope-drop') {
+                const eeNames = eeRides.filter(r => r.rideType === 'thrill' || r.rideType === 'family').map(r => r.name).slice(0, 5).join(', ');
+                prompt += `- EARLY ENTRY STRATEGY: Guest is on-site. Target these headliners during Early Entry: ${eeNames}.\n`;
+            }
+            const eehRides = rideData.filter(r => r.eehAvailable);
+            if (eehRides.length > 0) {
+                const eehNames = eehRides.filter(r => r.rideType === 'thrill').map(r => r.name).slice(0, 4).join(', ');
+                if (eehNames) {
+                    prompt += `- EXTENDED EVENING HOURS: Defer these thrills to EEH when crowds thin: ${eehNames}.\n`;
+                }
+            }
         }
 
         if (profile.budgetDirectives.allowReservedSeatingPackages) {

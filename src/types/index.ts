@@ -43,6 +43,17 @@ export interface Ride {
     height_requirement_cm?: number;
     intensity: 'High' | 'Moderate' | 'Low';
     sensory_tags?: string[];
+    // Strategic metadata (enriched from backend API)
+    singleRider?: boolean;
+    hasRiderSwitch?: boolean;
+    heightRequirement?: number;     // inches (from backend)
+    rideType?: 'thrill' | 'family' | 'dark' | 'water' | 'show' | 'transport' | 'spinner';
+    durationMinutes?: number;
+    llTier?: 1 | 2 | null;
+    earlyEntryAvailable?: boolean;
+    eehAvailable?: boolean;
+    virtualQueue?: boolean;
+    landmark?: string;
 }
 
 export type WDWPassTier = 'Incredi-Pass' | 'Sorcerer' | 'Pirate' | 'Pixie';
