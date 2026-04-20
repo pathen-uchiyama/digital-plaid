@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Alert, Modal, Dimensions } from 'react-native';
 import { THEME } from '../utils/DesignSystem';
 import {
@@ -7,7 +7,9 @@ import {
     Map as MapIcon,
     Battery,
     Wand2,
-    Zap as ZapIcon
+    Zap as ZapIcon,
+    Wifi,
+    WifiOff
 } from 'lucide-react-native';
 import { Recalibrator, PivotDecision } from '../utils/Recalibrator';
 import { RefinedCoach } from '../utils/ConciergeCoach';
@@ -26,6 +28,7 @@ import { findAndSeekStore } from '../utils/FindAndSeekEngine';
 import { WeatherProtocol, WeatherCondition } from '../utils/WeatherProtocol';
 import { AchievementsEngine } from '../utils/AchievementsEngine';
 import { autoBookingEngine } from '../utils/AutoBookingManager';
+import { Config } from '../config/Config';
 
 import { CharacterIntelEngine, CharacterSighting } from '../utils/CharacterIntelEngine';
 import { BestSpotDatabase } from '../utils/BestSpotDatabase';
@@ -145,6 +148,21 @@ export default function HorizonDashboard({
     // Live Queue Telemetry Bridge
     const currentParkId = activeItinerary[0]?.park_id || resortId === 'WDW' ? 'MK' : 'DL';
     const { statuses: liveStatuses, isBackendOffline } = useParkStatus(currentParkId as string);
+
+    // Pipeline Health Monitor
+    const [pipelineHealth, setPipelineHealth] = useState<any>(null);
+
+    useEffect(() => {
+        const fetchPipelineHealth = async () => {
+            try {
+                const res = await fetch(`${Config.API_BASE_URL}/admin/session-health`);
+                if (res.ok) setPipelineHealth(await res.json());
+            } catch { /* silent */ }
+        };
+        fetchPipelineHealth();
+        const interval = setInterval(fetchPipelineHealth, 60000);
+        return () => clearInterval(interval);
+    }, []);
 
     // Merge live wait times into the active itinerary
     const syncedItinerary = activeItinerary.map(step => {
@@ -392,6 +410,42 @@ export default function HorizonDashboard({
                             <View className="flex-1">
                                 <Text className="text-red-500 font-header text-xs uppercase tracking-widest">Tactical Link Offline</Text>
                                 <Text className="text-white/60 font-body text-[10px]">Syncing suspended. Displaying cached intelligence.</Text>
+                            </View>
+                        </View>
+                    )}
+
+                    {/* Pipeline Health Monitor Card */}
+                    {pipelineHealth && (
+                        <View className={`p-4 rounded-2xl border flex-row items-center ${
+                            pipelineHealth.status === 'HEALTHY' ? 'bg-plaid-teal/10 border-plaid-teal/30' :
+                            pipelineHealth.status === 'DEGRADED' ? 'bg-plaid-gold/10 border-plaid-gold/30' :
+                            'bg-plaid-rose/10 border-plaid-rose/30'
+                        }`}>
+                            {pipelineHealth.status === 'HEALTHY' ? (
+                                <Wifi size={16} color={THEME.colors.teal} />
+                            ) : (
+                                <WifiOff size={16} color={pipelineHealth.status === 'DEGRADED' ? THEME.colors.gold : THEME.colors.rose} />
+                            )}
+                            <View className="ml-3 flex-1">
+                                <Text className={`font-header text-[10px] uppercase tracking-widest ${
+                                    pipelineHealth.status === 'HEALTHY' ? 'text-plaid-teal' :
+                                    pipelineHealth.status === 'DEGRADED' ? 'text-plaid-gold' : 'text-plaid-rose'
+                                }`}>
+                                    {pipelineHealth.dataSource === 'DISNEY_API' ? 'Live Bot Feed' : 'Wiki Fallback'}
+                                </Text>
+                                <Text className="text-plaid-navy/40 font-body text-[8px] mt-0.5">
+                                    {pipelineHealth.activeSessions} sessions • Circuit {pipelineHealth.circuitBreaker}
+                                    {pipelineHealth.lastBotPoll ? ` • ${new Date(pipelineHealth.lastBotPoll).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}` : ''}
+                                </Text>
+                            </View>
+                            <View className={`px-2 py-1 rounded-lg ${
+                                pipelineHealth.status === 'HEALTHY' ? 'bg-plaid-teal/20' :
+                                pipelineHealth.status === 'DEGRADED' ? 'bg-plaid-gold/20' : 'bg-plaid-rose/20'
+                            }`}>
+                                <Text className={`font-header text-[7px] uppercase ${
+                                    pipelineHealth.status === 'HEALTHY' ? 'text-plaid-teal' :
+                                    pipelineHealth.status === 'DEGRADED' ? 'text-plaid-gold' : 'text-plaid-rose'
+                                }`}>{pipelineHealth.status}</Text>
                             </View>
                         </View>
                     )}
